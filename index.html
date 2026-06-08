@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tech Explorer</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f8f6; color: #1a1a1a; min-height: 100vh; }
+  .container { max-width: 860px; margin: 0 auto; padding: 0 20px 60px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+  /* NAV */
+  .main-nav { display: flex; gap: 8px; justify-content: center; padding: 20px 0 0; flex-wrap: wrap; }
+  .nav-btn { font-size: 13px; padding: 7px 16px; border-radius: 999px; border: 1px solid #ddd; background: #fff; color: #555; cursor: pointer; font-family: inherit; transition: all .15s; }
+  .nav-btn:hover { background: #f2f2f0; }
+  .nav-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+
+  /* PAGE */
+  .page { display: none; } .page.active { display: block; }
+
+  /* HERO */
+  .hero { padding: 2rem 0 1rem; text-align: center; }
+  .hero h1 { font-size: 26px; font-weight: 500; margin-bottom: 6px; }
+  .hero p { font-size: 15px; color: #666; }
+
+  /* TOOLBAR */
+  .toolbar { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 1.25rem; align-items: center; }
+  .tool-label { font-size: 12px; color: #999; margin-right: 2px; }
+  .level-btn, .lang-btn { font-size: 12px; padding: 5px 11px; border-radius: 999px; border: 1px solid #ddd; background: #fff; color: #666; cursor: pointer; font-family: inherit; transition: all .15s; }
+  .level-btn:hover, .lang-btn:hover { background: #f2f2f0; }
+  .level-btn.active { background: #E1F5EE; color: #0F6E56; border-color: #5DCAA5; }
+  .lang-btn.active { background: #EEEDFE; color: #534AB7; border-color: #AFA9EC; }
+
+  /* SEARCH */
+  .search-wrap { max-width: 460px; margin: 0 auto 1.25rem; position: relative; }
+  .search-wrap input { width: 100%; padding: 10px 16px 10px 42px; font-size: 15px; border-radius: 12px; border: 1.5px solid #ddd; background: #fff; color: #1a1a1a; outline: none; transition: border-color .15s; font-family: inherit; }
+  .search-wrap input:focus { border-color: #aaa; }
+  .s-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: 18px; color: #bbb; pointer-events: none; }
+  .clear-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #bbb; font-size: 16px; display: none; padding: 2px; }
+
+  /* FILTERS */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 1.5rem; }
+  .filter-btn { font-size: 12px; padding: 5px 12px; border-radius: 999px; border: 1px solid #ddd; background: #fff; color: #666; cursor: pointer; font-family: inherit; transition: all .15s; }
+  .filter-btn:hover { background: #f2f2f0; }
+  .filter-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+
+  /* CARDS */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 1rem 1.25rem; transition: border-color .15s, transform .15s; }
+  .card:hover { border-color: #bbb; transform: translateY(-1px); }
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .card-icon { font-size: 22px; color: #999; flex-shrink: 0; }
+  .cat-pill { font-size: 11px; padding: 3px 9px; border-radius: 999px; font-weight: 500; white-space: nowrap; }
+  .card h3 { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 5px; line-height: 1.3; }
+  .card p { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 10px; }
+  .tech-badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 999px; margin: 2px 2px 2px 0; }
+  .learn-btn { font-size: 12px; color: #185FA5; background: none; border: none; cursor: pointer; padding: 0; font-family: inherit; display: inline-flex; align-items: center; gap: 3px; margin-top: 8px; }
+  .learn-btn:hover { text-decoration: underline; }
+
+  .results-label { font-size: 13px; color: #bbb; margin-bottom: 1rem; }
+  .no-results { text-align: center; padding: 2.5rem 0; color: #999; font-size: 15px; }
+
+  /* GOALS PAGE */
+  .goals-wrap { max-width: 540px; margin: 0 auto; padding-bottom: 2rem; }
+  .field-wrap { margin-bottom: 1.25rem; }
+  .field-label { font-size: 13px; font-weight: 500; color: #555; margin-bottom: 6px; display: block; }
+  .goals-wrap input[type=text], .goals-wrap textarea, .goals-wrap select {
+    width: 100%; font-family: inherit; font-size: 14px; padding: 9px 12px;
+    border: 1px solid #ddd; border-radius: 8px; background: #fff; color: #1a1a1a; outline: none; transition: border-color .15s;
+  }
+  .goals-wrap input:focus, .goals-wrap textarea:focus, .goals-wrap select:focus { border-color: #aaa; }
+  .goals-wrap textarea { resize: vertical; min-height: 80px; }
+  .submit-btn { font-size: 14px; padding: 9px 22px; border-radius: 8px; border: none; background: #1a1a1a; color: #fff; cursor: pointer; font-family: inherit; transition: opacity .15s; }
+  .submit-btn:hover { opacity: .85; }
+  .submit-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .divider { border: none; border-top: 1px solid #eee; margin: 1.5rem 0; }
+  .goals-list-title { font-size: 16px; font-weight: 500; color: #1a1a1a; margin-bottom: 1rem; }
+  .goal-card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 12px; }
+  .goal-card .gc-name { font-size: 13px; font-weight: 500; color: #1a1a1a; }
+  .goal-card .gc-job { font-size: 12px; color: #bbb; margin-bottom: 8px; }
+  .goal-card .gc-goal { font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 6px; }
+  .goal-card .gc-tech { font-size: 12px; color: #888; line-height: 1.5; }
+  .ai-response { background: #f8f8f6; border-radius: 8px; padding: 1rem; font-size: 13px; color: #555; line-height: 1.6; margin-top: 10px; display: none; border: 1px solid #eee; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #ddd; border-top-color: #1a1a1a; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .success-banner { background: #E1F5EE; color: #0F6E56; border: 1px solid #5DCAA5; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-top: 12px; display: none; }
+
+  /* API NOTE */
+  .api-note { background: #FAEEDA; border: 1px solid #EF9F27; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #854F0B; margin-bottom: 1.25rem; line-height: 1.5; }
+  .api-note a { color: #633806; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2 class="sr-only">Technology Explorer for Students</h2>
+
+  <nav class="main-nav" aria-label="Site navigation">
+    <button class="nav-btn active" data-page="explore" onclick="switchPage('explore')"><i class="ti ti-telescope" aria-hidden="true"></i> Explore technology</button>
+    <button class="nav-btn" data-page="goals" onclick="switchPage('goals')"><i class="ti ti-star" aria-hidden="true"></i> My future goals</button>
+  </nav>
+
+  <!-- EXPLORE PAGE -->
+  <div id="page-explore" class="page active">
+    <div class="hero">
+      <h1 id="heroTitle">🔭 Tech Explorer</h1>
+      <p id="heroSub">Discover how technology helps people in different jobs and fields!</p>
+    </div>
+    <div class="toolbar">
+      <div style="display:flex;align-items:center;gap:4px">
+        <span class="tool-label" id="readLabel">Reading level:</span>
+        <button class="level-btn" data-level="1" onclick="setLevel(1)" id="lvl1">Grade 1</button>
+        <button class="level-btn active" data-level="3" onclick="setLevel(3)" id="lvl3">Grade 3</button>
+        <button class="level-btn" data-level="5" onclick="setLevel(5)" id="lvl5">Grade 5</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <span class="tool-label" id="langLabel">Language:</span>
+        <button class="lang-btn active" onclick="setLang('en')" id="langEn">English</button>
+        <button class="lang-btn" onclick="setLang('zh')" id="langZh">中文</button>
+      </div>
+    </div>
+    <div class="search-wrap">
+      <i class="ti ti-search s-icon" aria-hidden="true"></i>
+      <input type="text" id="searchInput" placeholder="Search topics, tech types, or fields..." aria-label="Search" />
+      <button class="clear-btn" id="clearBtn" aria-label="Clear search">✕</button>
+    </div>
+    <div class="filters" id="filterBar"></div>
+    <div class="results-label" id="resultsLabel"></div>
+    <div class="cards" id="cardGrid"></div>
+    <div class="no-results" id="noResults" style="display:none">No results found. Try a different word!</div>
+  </div>
+
+  <!-- GOALS PAGE -->
+  <div id="page-goals" class="page">
+    <div class="hero">
+      <h1 id="goalsHeroTitle">🌟 My future goals</h1>
+      <p id="goalsHeroSub">Tell us what you want to be when you grow up — and how technology might help you!</p>
+    </div>
+    <div class="goals-wrap">
+      <div class="api-note">
+        <strong>Note for teachers:</strong> The AI tip feature requires an Anthropic API key. Open this file in a text editor and replace <code>YOUR_API_KEY_HERE</code> near the bottom with your key. <a href="https://console.anthropic.com/" target="_blank">Get a key at console.anthropic.com</a>.
+      </div>
+      <div class="field-wrap">
+        <label class="field-label" id="nameLabel" for="studentName">Your first name</label>
+        <input type="text" id="studentName" placeholder="e.g. Sofia" />
+      </div>
+      <div class="field-wrap">
+        <label class="field-label" id="jobLabel" for="dreamJob">What do you want to be?</label>
+        <input type="text" id="dreamJob" placeholder="e.g. veterinarian, astronaut, artist..." />
+      </div>
+      <div class="field-wrap">
+        <label class="field-label" id="goalLabel" for="goalText">What is your goal?</label>
+        <textarea id="goalText" placeholder="e.g. I want to help sick animals get better..."></textarea>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label" id="techLabel" for="techChoice">Which technology do you think could help you?</label>
+        <select id="techChoice">
+          <option value="">-- pick one --</option>
+          <option value="AI">AI (Artificial Intelligence)</option>
+          <option value="Robotics">Robotics</option>
+          <option value="Machine Learning">Machine Learning</option>
+          <option value="Sensors">Sensors</option>
+          <option value="Drones">Drones</option>
+          <option value="3D Printing">3D Printing</option>
+          <option value="Wearables">Wearables</option>
+          <option value="VR / AR">VR / AR</option>
+          <option value="Computers">Computers</option>
+          <option value="Internet">Internet</option>
+          <option value="Not sure yet">Not sure yet!</option>
+        </select>
+      </div>
+      <button class="submit-btn" id="submitBtn" onclick="submitGoal()"><span id="submitBtnText">Submit my goal</span></button>
+      <div class="ai-response" id="aiResponse"></div>
+      <div class="success-banner" id="successBanner">Your goal has been added below!</div>
+      <hr class="divider" />
+      <div class="goals-list-title" id="goalsListTitle">Goals from this class</div>
+      <div id="goalsList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_KEY = "YOUR_API_KEY_HERE";
+
+const UI = {
+  en: {
+    heroTitle:"🔭 Tech Explorer", heroSub:"Discover how technology helps people in different jobs and fields!",
+    readLabel:"Reading level:", langLabel:"Language:",
+    allFields:"All fields", learnMore:"Learn more",
+    goalsHeroTitle:"🌟 My future goals", goalsHeroSub:"Tell us what you want to be when you grow up — and how technology might help you!",
+    nameLabel:"Your first name", jobLabel:"What do you want to be?", goalLabel:"What is your goal?",
+    techLabel:"Which technology do you think could help you?",
+    submitBtn:"Submit my goal", goalsListTitle:"Goals from this class",
+    noResults:"No results found. Try a different word!", navExplore:"Explore technology", navGoals:"My future goals",
+  },
+  zh: {
+    heroTitle:"🔭 科技探索者", heroSub:"发现科技如何帮助不同领域的人！",
+    readLabel:"阅读级别：", langLabel:"语言：",
+    allFields:"所有领域", learnMore:"了解更多",
+    goalsHeroTitle:"🌟 我的未来目标", goalsHeroSub:"告诉我们你长大后想做什么，科技如何帮助你！",
+    nameLabel:"你的名字", jobLabel:"你想做什么职业？", goalLabel:"你的目标是什么？",
+    techLabel:"你认为哪种技术可以帮助你？",
+    submitBtn:"提交我的目标", goalsListTitle:"本班同学的目标",
+    noResults:"没有找到结果，请尝试其他词！", navExplore:"探索科技", navGoals:"我的未来目标",
+  }
+};
+
+const catColors = {
+  "Medicine & Health":  {bg:"#E1F5EE",color:"#0F6E56",border:"#5DCAA5",zh:"医学与健康"},
+  "Space & Science":    {bg:"#E6F1FB",color:"#185FA5",border:"#85B7EB",zh:"太空与科学"},
+  "Animals & Nature":   {bg:"#EAF3DE",color:"#3B6D11",border:"#97C459",zh:"动物与自然"},
+  "Sports":             {bg:"#FAEEDA",color:"#854F0B",border:"#EF9F27",zh:"体育运动"},
+  "Arts & Music":       {bg:"#FBEAF0",color:"#993556",border:"#ED93B1",zh:"艺术与音乐"},
+  "Food & Farming":     {bg:"#EEEDFE",color:"#534AB7",border:"#AFA9EC",zh:"食物与农业"},
+  "Transportation":     {bg:"#FAECE7",color:"#993C1D",border:"#F0997B",zh:"交通运输"},
+  "School & Learning":  {bg:"#F1EFE8",color:"#5F5E5A",border:"#B4B2A9",zh:"学校与学习"},
+};
+const techColors = {
+  "AI":              {bg:"#E6F1FB",color:"#185FA5"},
+  "Robotics":        {bg:"#FAECE7",color:"#993C1D"},
+  "Machine Learning":{bg:"#EEEDFE",color:"#534AB7"},
+  "Sensors":         {bg:"#EAF3DE",color:"#3B6D11"},
+  "Drones":          {bg:"#FAEEDA",color:"#854F0B"},
+  "3D Printing":     {bg:"#FBEAF0",color:"#993556"},
+  "Wearables":       {bg:"#E1F5EE",color:"#0F6E56"},
+  "VR / AR":         {bg:"#F1EFE8",color:"#5F5E5A"},
+  "Computers":       {bg:"#E6F1FB",color:"#185FA5"},
+  "GPS":             {bg:"#EAF3DE",color:"#3B6D11"},
+  "Internet":        {bg:"#EEEDFE",color:"#534AB7"},
+  "Cameras":         {bg:"#FAECE7",color:"#993C1D"},
+};
+const filterLabels = {
+  en:{"Medicine & Health":"🏥 Medicine","Space & Science":"🚀 Space & Science","Animals & Nature":"🐾 Animals & Nature","Sports":"⚽ Sports","Arts & Music":"🎨 Arts & Music","Food & Farming":"🌾 Food & Farming","Transportation":"🚗 Transportation","School & Learning":"📚 School & Learning"},
+  zh:{"Medicine & Health":"🏥 医学","Space & Science":"🚀 太空与科学","Animals & Nature":"🐾 动物与自然","Sports":"⚽ 体育","Arts & Music":"🎨 艺术与音乐","Food & Farming":"🌾 食物与农业","Transportation":"🚗 交通","School & Learning":"📚 学习"},
+};
+
+const data = [
+  {cat:"Medicine & Health",icon:"ti-stethoscope",g1:{en:"Robots help doctors fix people. They make small cuts. You heal faster!",zh:"机器人帮助医生治病。它们切口很小。你恢复得更快！"},g3:{en:"Tiny robots help doctors perform surgeries with great precision, making smaller cuts so patients heal faster.",zh:"小型机器人帮助医生以极高的精度进行手术，切口更小，让患者恢复得更快。"},g5:{en:"Surgical robots, guided by doctors, execute precise incisions with minimal tissue damage, accelerating patient recovery and reducing infection risk.",zh:"由医生操控的手术机器人以极小的组织损伤执行精准切口，加快患者康复并降低感染风险。"},title:{en:"Robot surgeons",zh:"机器人外科医生"},tech:["Robotics","AI"]},
+  {cat:"Medicine & Health",icon:"ti-heart-rate-monitor",g1:{en:"A watch on your wrist tells the doctor how fast your heart beats!",zh:"手腕上的手表告诉医生你的心跳有多快！"},g3:{en:"Wearable watches track your heartbeat, sleep, and steps, alerting doctors if something looks unusual.",zh:"可穿戴手表追踪您的心跳、睡眠和步数，如有异常会提醒医生。"},g5:{en:"Biosensor-equipped wearables continuously monitor heart rate, sleep stages, and activity patterns, flagging anomalies for medical review.",zh:"配备生物传感器的可穿戴设备持续监测心率、睡眠阶段和活动模式，并标记异常供医疗审查。"},title:{en:"Smart health watches",zh:"智能健康手表"},tech:["Wearables","Sensors","AI"]},
+  {cat:"Medicine & Health",icon:"ti-scan",g1:{en:"A computer looks at X-ray pictures and helps find broken bones fast!",zh:"电脑查看X光片，帮助快速发现骨折！"},g3:{en:"Computers use AI to look at X-ray pictures and help doctors spot broken bones or illnesses much faster.",zh:"电脑利用人工智能查看X光片，帮助医生更快发现骨折或疾病。"},g5:{en:"AI-powered diagnostic systems analyze medical imaging data to identify fractures, tumors, and pathologies with accuracy rivaling experienced radiologists.",zh:"AI诊断系统分析医学影像数据，识别骨折、肿瘤和病变，准确性与经验丰富的放射科医生相当。"},title:{en:"AI that reads X-rays",zh:"读取X光片的AI"},tech:["AI","Machine Learning"]},
+  {cat:"Medicine & Health",icon:"ti-pill",g1:{en:"Special printers make new ear or bone shapes for people who need them!",zh:"特殊打印机为需要的人制造新的耳朵或骨骼形状！"},g3:{en:"Scientists can now print real human ear shapes, bone pieces, and even skin using special 3D printers.",zh:"科学家现在可以用特殊的3D打印机打印真实的人耳形状、骨骼碎片甚至皮肤。"},g5:{en:"Bioprinting technologies layer biomaterials and living cells to fabricate anatomically accurate prosthetics, cartilage, and skin grafts for transplant patients.",zh:"生物打印技术通过逐层生物材料和活细胞，制造解剖精确的假肢、软骨和皮肤移植物。"},title:{en:"3D-printed body parts",zh:"3D打印人体部件"},tech:["3D Printing"]},
+  {cat:"Space & Science",icon:"ti-rocket",g1:{en:"A robot car drives on Mars! It takes pictures and picks up rocks.",zh:"机器人小车在火星上行驶！它拍照并捡起岩石。"},g3:{en:"Robot explorers called rovers drive around Mars, taking photos and collecting rocks to help scientists learn about the planet.",zh:"名为探测车的机器人探索者在火星上行驶，拍摄照片并收集岩石，帮助科学家了解这颗星球。"},g5:{en:"Autonomous rovers navigate Martian terrain using onboard AI, conducting geological sampling and transmitting spectroscopic data to Earth-based researchers.",zh:"自主探测车使用车载AI穿越火星地形，进行地质采样并将光谱数据传输给地球研究人员。"},title:{en:"Rovers on Mars",zh:"火星探测车"},tech:["Robotics","AI","Computers"]},
+  {cat:"Space & Science",icon:"ti-telescope",g1:{en:"A giant space camera takes pictures of stars very far away!",zh:"一台巨大的太空相机拍摄遥远星星的照片！"},g3:{en:"Telescopes like the James Webb Space Telescope use special cameras and computers to take pictures of stars billions of miles away.",zh:"像詹姆斯·韦伯太空望远镜这样的望远镜，利用特殊的相机和电脑拍摄数十亿英里之外星星的照片。"},g5:{en:"Infrared space telescopes capture light from the earliest galaxies by using mirror arrays and cryogenic sensors, revealing the universe's structure 13 billion years ago.",zh:"红外太空望远镜通过使用镜阵和低温传感器捕获最早星系的光，揭示130亿年前宇宙的结构。"},title:{en:"Space telescopes",zh:"太空望远镜"},tech:["Cameras","Computers"]},
+  {cat:"Space & Science",icon:"ti-cloud",g1:{en:"Big computers guess if it will rain tomorrow. They look at clouds!",zh:"大型电脑猜测明天是否会下雨。它们观察云朵！"},g3:{en:"Supercomputers use AI to study clouds, wind, and temperature data to predict if tomorrow will be sunny or rainy.",zh:"超级计算机利用AI研究云层、风和温度数据，预测明天是晴天还是雨天。"},g5:{en:"Numerical weather prediction models process atmospheric sensor arrays, satellite feeds, and historical climate data through ML algorithms to generate probabilistic forecasts.",zh:"数值天气预报模型通过机器学习算法处理大气传感器阵列、卫星馈送和历史气候数据，生成概率预报。"},title:{en:"AI weather forecasting",zh:"AI天气预报"},tech:["AI","Machine Learning","Sensors"]},
+  {cat:"Space & Science",icon:"ti-satellite",g1:{en:"Satellites fly above Earth and take pictures of whole countries!",zh:"卫星在地球上空飞行，拍摄整个国家的照片！"},g3:{en:"Satellites orbit the Earth and send pictures and signals back to scientists and to your GPS on long trips.",zh:"卫星绕地球运行，将图片和信号发送回科学家，也发送到你长途旅行中使用的GPS。"},g5:{en:"Earth observation satellites equipped with multispectral sensors monitor deforestation, glacier retreat, and urban sprawl, providing actionable environmental data.",zh:"装备多光谱传感器的地球观测卫星监测森林砍伐、冰川退缩和城市扩张，提供可操作的环境数据。"},title:{en:"Earth-watching satellites",zh:"地球观测卫星"},tech:["GPS","Sensors","Computers"]},
+  {cat:"Animals & Nature",icon:"ti-paw",g1:{en:"Scientists put a little tracker on animals to see where they go!",zh:"科学家给动物戴上小追踪器，看看它们去哪里！"},g3:{en:"Scientists put tiny GPS collars on lions, elephants, and whales to track where they travel and keep them safe.",zh:"科学家在狮子、大象和鲸鱼身上安装微型GPS项圈，追踪它们的行踪并保护它们的安全。"},g5:{en:"GPS telemetry collars transmit real-time geolocation data, enabling conservationists to map migration corridors and detect human-wildlife conflict zones.",zh:"GPS遥测项圈传输实时地理位置数据，使保育人员能够绘制迁徙走廊并检测人与野生动物冲突区域。"},title:{en:"Tracking wild animals",zh:"追踪野生动物"},tech:["GPS","Sensors"]},
+  {cat:"Animals & Nature",icon:"ti-drone",g1:{en:"Flying robots take pictures of animals from the sky to count them!",zh:"飞行机器人从空中拍摄动物照片来数数它们！"},g3:{en:"Drones fly over forests and oceans taking photos that AI counts to see how many animals are living there.",zh:"无人机飞越森林和海洋拍摄照片，AI进行计数，了解那里居住着多少动物。"},g5:{en:"UAVs equipped with thermal imaging cameras generate population census data that machine learning models analyze to assess biodiversity and detect poaching activity.",zh:"配备热成像相机的无人机生成种群普查数据，机器学习模型对其进行分析，以评估生物多样性并探测偷猎活动。"},title:{en:"Drones counting wildlife",zh:"无人机统计野生动物"},tech:["Drones","AI","Cameras"]},
+  {cat:"Animals & Nature",icon:"ti-ear",g1:{en:"Tiny microphones listen in the forest. A computer finds animal sounds!",zh:"小麦克风在森林里聆听。电脑发现动物的声音！"},g3:{en:"Microphones placed in forests record sounds. AI listens to identify which animals are present — even rare ones!",zh:"放置在森林中的麦克风录制声音。AI倾听并识别哪些动物在场——甚至是稀有动物！"},g5:{en:"Passive acoustic monitoring arrays capture soundscapes that deep learning classifiers analyze to identify species by call patterns, flagging ecosystem health changes.",zh:"被动声学监测阵列捕获声景，深度学习分类器通过鸣叫模式进行分析来识别物种，标记生态系统健康变化。"},title:{en:"Listening to rainforests",zh:"倾听热带雨林"},tech:["AI","Machine Learning","Sensors"]},
+  {cat:"Animals & Nature",icon:"ti-fish",g1:{en:"Computers help find fish in the ocean so we don't run out!",zh:"电脑帮助在海洋中找到鱼，这样我们就不会用完！"},g3:{en:"Scientists use sonar and AI to track fish populations underwater, helping fishing boats know where to go and making sure we don't catch too many fish.",zh:"科学家利用声呐和AI追踪水下鱼类种群，帮助渔船知道去哪里，并确保我们不会捕捞太多鱼。"},g5:{en:"Sonar mapping combined with machine learning models predicts fish stock distribution and health, supporting sustainable aquaculture and regulating commercial harvesting.",zh:"声呐测绘与机器学习模型相结合，预测鱼类种群分布和健康状况，支持可持续水产养殖并规范商业捕捞。"},title:{en:"Ocean fish tracking",zh:"海洋鱼类追踪"},tech:["Sensors","AI","Computers"]},
+  {cat:"Sports",icon:"ti-run",g1:{en:"Athletes wear sensors that tell the coach how fast they run!",zh:"运动员穿戴传感器，告诉教练他们跑得有多快！"},g3:{en:"Tiny sensors worn by athletes measure speed, heart rate, and movement so coaches can train players better.",zh:"运动员佩戴的微型传感器测量速度、心率和动作，让教练能够更好地训练球员。"},g5:{en:"Wearable biomechanical sensors generate performance datasets that sports scientists analyze to optimize training loads, reduce overuse injuries, and benchmark athletes.",zh:"可穿戴生物力学传感器生成性能数据集，体育科学家对其进行分析，以优化训练负荷、减少过度使用损伤并对运动员进行基准测试。"},title:{en:"Athlete tracking sensors",zh:"运动员追踪传感器"},tech:["Sensors","Wearables","AI"]},
+  {cat:"Sports",icon:"ti-eye",g1:{en:"Cameras watch the game and help the referee make fair calls!",zh:"摄像机观看比赛，帮助裁判做出公平判决！"},g3:{en:"High-speed cameras and computers review plays in milliseconds to help referees make the right calls.",zh:"高速摄像机和电脑在几毫秒内回顾比赛动作，帮助裁判做出正确判决。"},g5:{en:"Multi-angle high-frame-rate video systems feed real-time footage into computer vision algorithms that flag contested calls for referee review within seconds.",zh:"多角度高帧率视频系统将实时录像输入计算机视觉算法，在几秒内标记有争议的判决供裁判审查。"},title:{en:"Instant replay & officiating",zh:"即时回放与裁判"},tech:["Cameras","Computers","AI"]},
+  {cat:"Sports",icon:"ti-chart-bar",g1:{en:"Computers watch old games and help teams make a smart plan!",zh:"电脑观看旧比赛，帮助球队制定聪明的计划！"},g3:{en:"Teams use AI to analyze thousands of past games to find patterns and plan smarter strategies.",zh:"球队利用AI分析数千场过去的比赛，找出规律并制定更聪明的策略。"},g5:{en:"Predictive analytics platforms process historical match data, player statistics, and opposition tendencies to generate tactical recommendations for coaches.",zh:"预测分析平台处理历史比赛数据、球员统计数据和对手倾向，为教练生成战术建议。"},title:{en:"AI game strategy",zh:"AI比赛策略"},tech:["AI","Machine Learning"]},
+  {cat:"Arts & Music",icon:"ti-music",g1:{en:"A computer listens to songs and then makes its own new music!",zh:"电脑听歌，然后创作自己的新音乐！"},g3:{en:"AI programs can listen to music and then create brand-new songs by learning patterns from thousands of tunes.",zh:"AI程序可以聆听音乐，然后通过学习数千首曲调的规律创作全新的歌曲。"},g5:{en:"Generative AI models trained on large MIDI and audio datasets compose original pieces by learning harmonic progressions, rhythmic structures, and orchestration conventions.",zh:"在大型MIDI和音频数据集上训练的生成式AI模型，通过学习和声进行、节奏结构和编排惯例创作原创作品。"},title:{en:"AI music composers",zh:"AI音乐作曲家"},tech:["AI","Machine Learning"]},
+  {cat:"Arts & Music",icon:"ti-palette",g1:{en:"Artists draw on a tablet and the computer makes it look beautiful!",zh:"艺术家在平板上绘画，电脑让它看起来很美！"},g3:{en:"Artists use drawing tablets and software to paint with thousands of digital colors — and undo any mistake!",zh:"艺术家使用绘图板和软件用数千种数字颜色绘画——还可以撤销任何错误！"},g5:{en:"Digital illustration tools with pressure-sensitive stylus input replicate traditional media textures while offering non-destructive layer editing and generative fill capabilities.",zh:"具有压力感应触控笔输入的数字插画工具复制传统媒体纹理，同时提供非破坏性图层编辑和生成填充功能。"},title:{en:"Digital art & painting",zh:"数字艺术与绘画"},tech:["Computers"]},
+  {cat:"Arts & Music",icon:"ti-device-tv",g1:{en:"A VR headset lets you go inside a painting — like magic!",zh:"VR头显让你进入一幅画——就像魔法一样！"},g3:{en:"With VR headsets, you can step inside a painting or sculpt giant 3D shapes floating in mid-air.",zh:"佩戴VR头显，你可以走进一幅画，或者雕刻漂浮在空中的巨大3D形状。"},g5:{en:"Immersive VR environments allow artists and audiences to inhabit three-dimensional creative spaces, while AR overlays integrate digital installations within physical galleries.",zh:"沉浸式VR环境让艺术家和观众居住在三维创意空间中，而AR叠加将数字装置整合到实体画廊中。"},title:{en:"VR art experiences",zh:"VR艺术体验"},tech:["VR / AR","Computers"]},
+  {cat:"Arts & Music",icon:"ti-movie",g1:{en:"Computers help make cartoon characters and special effects in movies!",zh:"电脑帮助制作电影中的卡通角色和特效！"},g3:{en:"Movie studios use computers and AI to create special effects, animated characters, and amazing scenes that would be impossible to film in real life.",zh:"电影制片公司使用电脑和AI创建特效、动画角色和在现实生活中无法拍摄的惊人场景。"},g5:{en:"Visual effects pipelines combine procedural simulation, motion capture data, and machine learning upscaling to generate photorealistic environments and digital performers.",zh:"视觉效果流水线结合程序模拟、动作捕捉数据和机器学习超分辨率，生成逼真的环境和数字演员。"},title:{en:"Movie special effects",zh:"电影特效"},tech:["Computers","AI","Machine Learning"]},
+  {cat:"Food & Farming",icon:"ti-plant",g1:{en:"Flying robots take pictures of plants to show farmers which ones need water!",zh:"飞行机器人拍摄植物照片，向农民展示哪些需要浇水！"},g3:{en:"Drones fly over fields taking photos that show farmers which plants need water or are getting sick.",zh:"无人机飞越田地拍摄照片，向农民展示哪些植物需要浇水或生病了。"},g5:{en:"Agricultural UAVs equipped with multispectral sensors generate NDVI maps that quantify crop stress, nitrogen deficiency, and pest pressure across large growing areas.",zh:"配备多光谱传感器的农业无人机生成NDVI地图，量化大面积种植区的作物胁迫、氮素缺乏和病虫害压力。"},title:{en:"Farming drones",zh:"农业无人机"},tech:["Drones","Cameras","AI"]},
+  {cat:"Food & Farming",icon:"ti-robot",g1:{en:"A robot gently picks strawberries without squishing them!",zh:"机器人轻轻地摘草莓，不会压扁它们！"},g3:{en:"Robots with gentle arms and cameras pick strawberries, apples, and peppers without squishing them.",zh:"配备温柔手臂和摄像头的机器人采摘草莓、苹果和辣椒，不会压扁它们。"},g5:{en:"Soft-robotics harvesting systems use computer vision to assess ripeness and deploy compliant grippers that match fruit delicacy, drastically reducing post-harvest waste.",zh:"软体机器人采收系统利用计算机视觉评估成熟度，并部署与水果娇嫩程度匹配的柔顺夹持器，大幅减少采后损耗。"},title:{en:"Robot fruit pickers",zh:"机器人水果采摘器"},tech:["Robotics","AI","Cameras"]},
+  {cat:"Food & Farming",icon:"ti-drop",g1:{en:"Sensors in the ground tell sprinklers when the plants are thirsty!",zh:"地下的传感器告诉喷水器植物什么时候口渴！"},g3:{en:"Sensors in the soil measure moisture and tell the sprinklers exactly when and how much water each plant needs.",zh:"土壤中的传感器测量湿度，并准确告诉喷水器每株植物何时需要多少水。"},g5:{en:"IoT soil moisture networks feed real-time data to irrigation controllers that apply precision watering schedules, reducing water consumption by up to 40% versus traditional methods.",zh:"物联网土壤湿度网络将实时数据传输给灌溉控制器，实施精准浇水计划，与传统方法相比用水量减少高达40%。"},title:{en:"Smart irrigation systems",zh:"智能灌溉系统"},tech:["Sensors","Computers","AI"]},
+  {cat:"Food & Farming",icon:"ti-building-store",g1:{en:"Computers make sure your food is safe to eat before it gets to the store!",zh:"电脑确保你的食物在到达商店之前是安全的！"},g3:{en:"Machines with cameras and AI scan food at factories to look for anything that shouldn't be there, keeping your food safe.",zh:"带有摄像头和AI的机器在工厂扫描食物，寻找任何不应该存在的东西，保证你的食品安全。"},g5:{en:"Computer vision inspection systems operating at production line speeds detect contaminants, defects, and labeling errors with sub-millimeter precision using hyperspectral imaging.",zh:"以生产线速度运行的计算机视觉检查系统，利用高光谱成像以亚毫米精度检测污染物、缺陷和标签错误。"},title:{en:"Food safety scanners",zh:"食品安全扫描仪"},tech:["AI","Cameras","Machine Learning"]},
+  {cat:"Transportation",icon:"ti-car",g1:{en:"A car drives by itself using cameras and computers — no driver needed!",zh:"一辆汽车使用摄像头和电脑自动驾驶——不需要司机！"},g3:{en:"Cars with cameras, sensors, and AI can see the road, traffic lights, and other cars to drive safely on their own.",zh:"配备摄像头、传感器和AI的汽车可以看到道路、交通灯和其他车辆，安全地自动驾驶。"},g5:{en:"Autonomous vehicles fuse LiDAR, radar, and camera data through sensor-fusion algorithms to build real-time 3D environmental maps for path planning and collision avoidance.",zh:"自动驾驶汽车通过传感器融合算法融合LiDAR、雷达和摄像头数据，构建实时3D环境地图，用于路径规划和碰撞避免。"},title:{en:"Self-driving cars",zh:"自动驾驶汽车"},tech:["AI","Sensors","Cameras","Machine Learning"]},
+  {cat:"Transportation",icon:"ti-plane",g1:{en:"Computers help keep lots of airplanes safe in the sky at the same time!",zh:"电脑帮助同时保持许多飞机在空中安全！"},g3:{en:"AI helps air traffic controllers safely manage hundreds of planes flying in and out of airports every hour.",zh:"AI帮助空中交通管制员安全管理每小时飞进飞出机场的数百架飞机。"},g5:{en:"AI-assisted air traffic management systems optimize routing, sequencing, and separation of concurrent flights using predictive conflict detection algorithms.",zh:"AI辅助空中交通管理系统使用预测性冲突检测算法，优化并发航班的路线、排序和间隔。"},title:{en:"Air traffic control AI",zh:"AI空中交通管制"},tech:["AI","Computers"]},
+  {cat:"Transportation",icon:"ti-package",g1:{en:"Small flying robots deliver packages to your house — like tiny mailmen!",zh:"小型飞行机器人将包裹送到你家——就像小邮差一样！"},g3:{en:"Small robots and drones are already delivering packages right to people's doors in some cities!",zh:"在一些城市，小型机器人和无人机已经将包裹直接送到人们家门口！"},g5:{en:"Last-mile autonomous delivery platforms integrate ground robots and aerial drones with real-time route optimization to reduce delivery costs and carbon emissions.",zh:"最后一公里自主配送平台将地面机器人和空中无人机与实时路线优化相结合，降低配送成本和碳排放。"},title:{en:"Delivery robots & drones",zh:"配送机器人与无人机"},tech:["Robotics","Drones","AI"]},
+  {cat:"Transportation",icon:"ti-train",g1:{en:"Super-fast trains go as fast as airplanes but stay on the ground!",zh:"超快速列车像飞机一样快，但留在地面上！"},g3:{en:"Maglev trains use powerful magnets and computers to float above the track and travel at airplane speeds without wheels touching the rail.",zh:"磁悬浮列车使用强大的磁铁和电脑在轨道上方漂浮，以飞机速度行驶，而不需要车轮接触铁轨。"},g5:{en:"Magnetic levitation trains eliminate friction through electromagnetic suspension, with onboard AI managing dynamic load balancing and real-time track safety diagnostics.",zh:"磁悬浮列车通过电磁悬浮消除摩擦，车载AI管理动态负载平衡和实时轨道安全诊断。"},title:{en:"Maglev trains",zh:"磁悬浮列车"},tech:["Computers","Sensors","AI"]},
+  {cat:"School & Learning",icon:"ti-brain",g1:{en:"A computer helper answers your questions and helps you learn math!",zh:"电脑助手回答你的问题，帮助你学习数学！"},g3:{en:"AI tutors answer student questions any time of day, give hints on math problems, and adjust to each learner's pace.",zh:"AI导师全天随时回答学生问题，提供数学题的提示，并适应每个学习者的学习节奏。"},g5:{en:"Adaptive learning platforms use machine learning to model each student's mastery level, dynamically adjusting problem difficulty and content delivery to maximize learning gains.",zh:"自适应学习平台使用机器学习模拟每个学生的掌握水平，动态调整题目难度和内容呈现方式，以最大化学习收益。"},title:{en:"AI tutoring helpers",zh:"AI辅导助手"},tech:["AI","Machine Learning","Internet"]},
+  {cat:"School & Learning",icon:"ti-reality-xr",g1:{en:"With a VR headset you can visit ancient Egypt or walk on the moon at school!",zh:"戴上VR头显，你可以在学校参观古埃及或在月球上行走！"},g3:{en:"With a VR headset, students can visit ancient Egypt, explore the ocean floor, or walk on the moon — right from class!",zh:"戴上VR头显，学生可以参观古埃及、探索海底，或者在月球上行走——就在教室里！"},g5:{en:"Educational VR environments transport students to historically reconstructed sites, cellular environments, and outer space, providing experiential learning that transcends textbook limitations.",zh:"教育VR环境将学生带到历史重建遗址、细胞环境和外太空，提供超越教科书限制的体验式学习。"},title:{en:"VR field trips",zh:"VR实地考察"},tech:["VR / AR","Computers"]},
+  {cat:"School & Learning",icon:"ti-language",g1:{en:"A computer changes words from one language to another in just one second!",zh:"电脑在一秒内将一种语言的单词转换成另一种语言！"},g3:{en:"AI can instantly translate text and spoken words into dozens of languages, helping students from different countries understand each other.",zh:"AI可以将文字和口语即时翻译成几十种语言，帮助来自不同国家的学生相互理解。"},g5:{en:"Neural machine translation models process semantic context across sentences to generate natural-sounding translations, enabling cross-cultural communication and multilingual classroom inclusion.",zh:"神经机器翻译模型跨句子处理语义上下文，生成自然的翻译，实现跨文化交流和多语言课堂融合。"},title:{en:"Language translation tools",zh:"语言翻译工具"},tech:["AI","Machine Learning","Internet"]},
+  {cat:"School & Learning",icon:"ti-code",g1:{en:"Kids can make their own games and stories on a computer — it's like building with blocks!",zh:"孩子们可以在电脑上制作自己的游戏和故事——就像用积木搭建一样！"},g3:{en:"Kids learn to code using simple programs that let them build their own games, animations, and apps — even in 3rd grade!",zh:"孩子们使用简单的程序学习编程，让他们能够制作自己的游戏、动画和应用程序——甚至在三年级！"},g5:{en:"Introductory programming environments use block-based and text-based coding paradigms to develop computational thinking, algorithmic reasoning, and iterative problem-solving skills.",zh:"入门编程环境使用基于积木和基于文本的编程范式，培养计算思维、算法推理和迭代解决问题的能力。"},title:{en:"Learning to code",zh:"学习编程"},tech:["Computers","AI","Internet"]},
+];
+
+let lang = "en", level = 3, filter = "all", search = "";
+const goals = [];
+
+function switchPage(p) {
+  document.querySelectorAll(".page").forEach(el => el.classList.remove("active"));
+  document.getElementById("page-" + p).classList.add("active");
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+  document.querySelector(`[data-page="${p}"]`).classList.add("active");
+}
+
+function applyUI() {
+  const u = UI[lang];
+  document.getElementById("heroTitle").textContent = u.heroTitle;
+  document.getElementById("heroSub").textContent = u.heroSub;
+  document.getElementById("readLabel").textContent = u.readLabel;
+  document.getElementById("langLabel").textContent = u.langLabel;
+  document.getElementById("goalsHeroTitle").textContent = u.goalsHeroTitle;
+  document.getElementById("goalsHeroSub").textContent = u.goalsHeroSub;
+  document.getElementById("nameLabel").textContent = u.nameLabel;
+  document.getElementById("jobLabel").textContent = u.jobLabel;
+  document.getElementById("goalLabel").textContent = u.goalLabel;
+  document.getElementById("techLabel").textContent = u.techLabel;
+  document.getElementById("submitBtnText").textContent = u.submitBtn;
+  document.getElementById("goalsListTitle").textContent = u.goalsListTitle;
+  document.getElementById("noResults").textContent = u.noResults;
+  buildFilters();
+  render();
+}
+
+function setLang(l) {
+  lang = l;
+  document.getElementById("langEn").classList.toggle("active", l === "en");
+  document.getElementById("langZh").classList.toggle("active", l === "zh");
+  applyUI();
+}
+
+function setLevel(lv) {
+  level = lv;
+  document.querySelectorAll(".level-btn").forEach(b => b.classList.toggle("active", parseInt(b.dataset.level) === lv));
+  render();
+}
+
+function buildFilters() {
+  const fl = filterLabels[lang];
+  const u = UI[lang];
+  let html = `<button class="filter-btn${filter === "all" ? " active" : ""}" onclick="setFilter('all')">${u.allFields}</button>`;
+  Object.keys(catColors).forEach(c => {
+    html += `<button class="filter-btn${filter === c ? " active" : ""}" onclick="setFilter('${c}')">${fl[c]}</button>`;
+  });
+  document.getElementById("filterBar").innerHTML = html;
+}
+
+function setFilter(f) { filter = f; buildFilters(); render(); }
+
+function techBadge(t) {
+  const c = techColors[t] || {bg:"#F1EFE8",color:"#5F5E5A"};
+  return `<span class="tech-badge" style="background:${c.bg};color:${c.color}">${t}</span>`;
+}
+
+function getDesc(d) { return d["g" + level][lang]; }
+
+function render() {
+  const q = search.toLowerCase();
+  const filtered = data.filter(d => {
+    const matchCat = filter === "all" || d.cat === filter;
+    const matchQ = !q || d.title[lang].toLowerCase().includes(q) || getDesc(d).toLowerCase().includes(q) || d.cat.toLowerCase().includes(q) || d.tech.some(t => t.toLowerCase().includes(q));
+    return matchCat && matchQ;
+  });
+  const grid = document.getElementById("cardGrid");
+  const noRes = document.getElementById("noResults");
+  const u = UI[lang];
+  if (!filtered.length) { grid.innerHTML = ""; noRes.style.display = "block"; return; }
+  noRes.style.display = "none";
+  grid.innerHTML = filtered.map(d => {
+    const c = catColors[d.cat];
+    return `<div class="card">
+      <div class="card-top">
+        <i class="ti ${d.icon} card-icon" aria-hidden="true"></i>
+        <span class="cat-pill" style="background:${c.bg};color:${c.color};border:1px solid ${c.border}">${lang === "zh" ? c.zh : d.cat}</span>
+      </div>
+      <h3>${d.title[lang]}</h3>
+      <p>${getDesc(d)}</p>
+      <div>${d.tech.map(techBadge).join("")}</div>
+    </div>`;
+  }).join("");
+}
+
+document.getElementById("searchInput").addEventListener("input", e => {
+  search = e.target.value;
+  document.getElementById("clearBtn").style.display = search ? "block" : "none";
+  render();
+});
+document.getElementById("clearBtn").addEventListener("click", () => {
+  document.getElementById("searchInput").value = ""; search = "";
+  document.getElementById("clearBtn").style.display = "none"; render();
+});
+
+async function submitGoal() {
+  const name = document.getElementById("studentName").value.trim();
+  const job = document.getElementById("dreamJob").value.trim();
+  const goal = document.getElementById("goalText").value.trim();
+  const tech = document.getElementById("techChoice").value;
+  if (!name || !job || !goal) return;
+  const btn = document.getElementById("submitBtn");
+  const aiBox = document.getElementById("aiResponse");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> Thinking...`;
+  aiBox.style.display = "block";
+  aiBox.textContent = "Getting ideas for you...";
+  try {
+    const prompt = `A 3rd grade student named ${name} wants to be a ${job}. Their goal is: "${goal}". Their chosen technology: ${tech || "not sure yet"}. In 2-3 friendly, encouraging sentences written for a 3rd grader, explain how technology (especially ${tech || "technology"}) could help them reach their goal or be great at their future job.`;
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-api-key": API_KEY, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 300, messages: [{ role: "user", content: prompt }] })
+    });
+    const d = await res.json();
+    const text = d.content.filter(b => b.type === "text").map(b => b.text).join("");
+    aiBox.textContent = text;
+    goals.unshift({ name, job, goal, tech, aiTip: text });
+  } catch(e) {
+    aiBox.textContent = "Couldn't load an AI tip right now — but your goal was saved! (Check that your API key is set correctly.)";
+    goals.unshift({ name, job, goal, tech, aiTip: "" });
+  }
+  renderGoals();
+  document.getElementById("studentName").value = "";
+  document.getElementById("dreamJob").value = "";
+  document.getElementById("goalText").value = "";
+  document.getElementById("techChoice").value = "";
+  const banner = document.getElementById("successBanner");
+  banner.style.display = "block";
+  setTimeout(() => banner.style.display = "none", 3000);
+  btn.disabled = false;
+  btn.innerHTML = `<span id="submitBtnText">${UI[lang].submitBtn}</span>`;
+}
+
+function renderGoals() {
+  document.getElementById("goalsList").innerHTML = goals.map(g => `
+    <div class="goal-card">
+      <div class="gc-name">${g.name}</div>
+      <div class="gc-job">Future ${g.job}${g.tech ? " · " + g.tech : ""}</div>
+      <div class="gc-goal">"${g.goal}"</div>
+      ${g.aiTip ? `<div class="gc-tech">💡 ${g.aiTip}</div>` : ""}
+    </div>`).join("");
+}
+
+buildFilters();
+render();
+</script>
+</body>
+</html>
